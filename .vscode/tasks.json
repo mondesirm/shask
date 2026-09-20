@@ -1,0 +1,74 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "Check Versions",
+      "command": "curl -fsSL https://get.n8n.io | sh -s -- --version | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+'",
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Bump Versions",
+      "command": "curl -fsSL https://get.n8n.io | sh -s -- --upgrade",
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Dump Database",
+      "command": "mkdir -p n8n/dumps; docker compose -p ${workspaceFolderBasename} exec -T postgres pg_dumpall -U ${input:POSTGRES_USER} > n8n/dumps/${input:timestamp}.sql || rm -f n8n/dumps/${input:timestamp}.sql",
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Restore Database",
+      "command": "docker compose -p ${workspaceFolderBasename} exec -T postgres psql -U ${input:POSTGRES_USER} -d ${input:POSTGRES_DB} < ${input:backup}",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "POSTGRES_USER",
+      "type": "promptString",
+      "description": "Enter the PostgreSQL username",
+      "default": "root"
+    },
+    {
+      "id": "POSTGRES_DB",
+      "type": "promptString",
+      "description": "Enter the PostgreSQL database name",
+      "default": "n8n"
+    },
+    {
+      "id": "timestamp",
+      "type": "command",
+      "command": "extension.commandvariable.dateTime",
+      "args": {
+        "options": {
+          "year": "numeric",
+          "month": "2-digit",
+          "day": "2-digit",
+          "hour12": false,
+          "hour": "2-digit",
+          "minute": "2-digit",
+          "second": "2-digit"
+        },
+        "template": "${year}-${month}-${day}T${hour}-${minute}-${second}"
+      }
+    },
+    {
+      "id": "backup",
+      "type": "command",
+      "command": "extension.commandvariable.file.pickFile",
+      "args": {
+        "display": "transform",
+        "description": "Select a backup file to restore",
+        "include": "n8n/dumps/*.sql",
+        "labelTransform": { "text": "${fileBasename}" },
+        "valueTransform": { "text": "${relativeFile}" }
+      }
+    }
+  ]
+}
