@@ -1,14 +1,30 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  // See https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
       "type": "node-terminal",
       "request": "launch",
-      "name": "Start Project",
-      "command": "docker compose -f n8n/compose.yml --profile gpu-nvidia up"
+      "name": "Start (CPU)",
+      "command": "docker compose --project-directory n8n -f n8n/compose.yml --profile cpu up"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "Start (Nvidia GPU)",
+      "command": "docker compose --project-directory n8n -f n8n/compose.yml --profile gpu-nvidia up"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "Start (AMD GPU)",
+      "command": "docker compose --project-directory n8n -f n8n/compose.yml --profile gpu-amd up"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "Start (Mac / host Ollama)",
+      "command": "docker compose --project-directory n8n -f n8n/compose.yml up"
     },
     {
       "type": "editor-browser",

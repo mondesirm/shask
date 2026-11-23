@@ -1,2 +1,5 @@
 .env
-n8n/dumps
+n8n/.env
+n8n/dumps/
+**/.env
+*.tmp

@@ -1,0 +1,36 @@
+name: Compose config
+
+on:
+  push:
+    paths:
+      - 'n8n/compose.yml'
+      - 'n8n/.env.example'
+      - '.github/workflows/compose-config.yml'
+  pull_request:
+    paths:
+      - 'n8n/compose.yml'
+      - 'n8n/.env.example'
+      - '.github/workflows/compose-config.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate compose (cpu profile)
+        run: |
+          cp n8n/.env.example n8n/.env
+          docker compose --project-directory n8n -f n8n/compose.yml --profile cpu config >/dev/null
+
+      - name: Validate compose (gpu-nvidia profile)
+        run: |
+          docker compose --project-directory n8n -f n8n/compose.yml --profile gpu-nvidia config >/dev/null
+
+      - name: Validate compose (gpu-amd profile)
+        run: |
+          docker compose --project-directory n8n -f n8n/compose.yml --profile gpu-amd config >/dev/null
+
+      - name: Validate compose (no profile / Mac host Ollama)
+        run: |
+          docker compose --project-directory n8n -f n8n/compose.yml config >/dev/null
