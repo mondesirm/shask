@@ -1,30 +1,59 @@
 {
   // See https://go.microsoft.com/fwlink/?LinkId=733558
-  // for the documentation about the tasks.json format
   "version": "2.0.0",
   "tasks": [
     {
       "type": "shell",
+      "label": "Generate Secrets",
+      "command": "./scripts/gen-secrets.sh",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
       "label": "Check Versions",
-      "command": "curl -fsSL https://get.n8n.io | sh -s -- --version | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+'",
+      "command": "curl -fsSL https://get.n8n.io | sh -s -- --version",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
       "problemMatcher": []
     },
     {
       "type": "shell",
       "label": "Bump Versions",
       "command": "curl -fsSL https://get.n8n.io | sh -s -- --upgrade",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Validate Compose",
+      "command": "docker compose --project-directory n8n -f n8n/compose.yml --profile cpu config >/dev/null && echo OK",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
       "problemMatcher": []
     },
     {
       "type": "shell",
       "label": "Dump Database",
-      "command": "mkdir -p n8n/dumps; docker compose -p ${workspaceFolderBasename} exec -T postgres pg_dumpall -U ${input:POSTGRES_USER} > n8n/dumps/${input:timestamp}.sql || rm -f n8n/dumps/${input:timestamp}.sql",
+      "command": "mkdir -p n8n/dumps; docker compose --project-directory n8n -f n8n/compose.yml exec -T postgres pg_dumpall -U ${input:POSTGRES_USER} > n8n/dumps/${input:timestamp}.sql || rm -f n8n/dumps/${input:timestamp}.sql",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
       "problemMatcher": []
     },
     {
       "type": "shell",
       "label": "Restore Database",
-      "command": "docker compose -p ${workspaceFolderBasename} exec -T postgres psql -U ${input:POSTGRES_USER} -d ${input:POSTGRES_DB} < ${input:backup}",
+      "command": "docker compose --project-directory n8n -f n8n/compose.yml exec -T postgres psql -U ${input:POSTGRES_USER} -d ${input:POSTGRES_DB} < ${input:backup}",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
       "problemMatcher": []
     }
   ],
@@ -33,7 +62,7 @@
       "id": "POSTGRES_USER",
       "type": "promptString",
       "description": "Enter the PostgreSQL username",
-      "default": "root"
+      "default": "n8n"
     },
     {
       "id": "POSTGRES_DB",

@@ -1,12 +1,12 @@
-# Self-hosted AI starter kit
+# Self-hosted AI starter kit (shask)
 
 **Self-hosted AI Starter Kit** is an open-source Docker Compose template designed to swiftly initialize a comprehensive local AI and low-code development environment.
 
 ![n8n.io - Screenshot](https://raw.githubusercontent.com/n8n-io/self-hosted-ai-starter-kit/main/assets/n8n-demo.gif)
 
-Curated by <https://github.com/n8n-io>, it combines the self-hosted n8n
-platform with a curated list of compatible AI products and components to
-quickly get started with building self-hosted AI workflows.
+Based on the [n8n-io self-hosted AI starter kit](https://github.com/n8n-io/self-hosted-ai-starter-kit)
+and merged with [n8n’s one-line setup](https://get.n8n.io) (sandbox, task
+runners, SearXNG). Stack files live under `n8n/`.
 
 > [!TIP]
 > [Read the announcement](https://blog.n8n.io/self-hosted-ai/)
@@ -20,10 +20,17 @@ integrations and advanced AI components
 and run the latest local LLMs
 
 ✅ [**Qdrant**](https://qdrant.tech/) - Open-source, high performance vector
-store with an comprehensive API
+store with a comprehensive API
 
-✅ [**PostgreSQL**](https://www.postgresql.org/) -  Workhorse of the Data
-Engineering world, handles large amounts of data safely.
+✅ [**PostgreSQL**](https://www.postgresql.org/) - Workhorse of the Data
+Engineering world, handles large amounts of data safely
+
+✅ [**SearXNG**](https://docs.searxng.org/) - Privacy-respecting metasearch
+used by the n8n instance AI assistant for web search
+
+✅ **n8n task runners + sandbox** - External Code-node runners and a
+privileged Docker-in-Docker sandbox for the instance AI assistant (local
+learning only; do not expose sandbox ports)
 
 ### What you can build
 
@@ -40,133 +47,140 @@ Engineering world, handles large amounts of data safely.
 ### Cloning the Repository
 
 ```bash
-git clone https://github.com/n8n-io/self-hosted-ai-starter-kit.git
-cd self-hosted-ai-starter-kit
-cp .env.example .env # you should update secrets and passwords inside
+git clone https://github.com/mondesirm/shask.git
+cd shask
+cp n8n/.env.example n8n/.env
+./scripts/gen-secrets.sh   # unique secrets; keeps demo encryption key
 ```
 
-### Running n8n using Docker Compose
+> [!IMPORTANT]
+> Always run Compose from `n8n/` (or use the root `Makefile`). The env file is
+> `n8n/.env`.
+
+### Running with Docker Compose
+
+All commands below assume you are in the **repo root** and use the Makefile,
+or you `cd n8n` and run `docker compose` there.
 
 #### For Nvidia GPU users
 
 ```bash
-git clone https://github.com/n8n-io/self-hosted-ai-starter-kit.git
-cd self-hosted-ai-starter-kit
-cp .env.example .env # you should update secrets and passwords inside
-docker compose --profile gpu-nvidia up
+make secrets
+make up-gpu
+# equivalent: docker compose --project-directory n8n -f n8n/compose.yml --profile gpu-nvidia up
 ```
 
 > [!NOTE]
 > If you have not used your Nvidia GPU with Docker before, please follow the
 > [Ollama Docker instructions](https://docs.ollama.com/docker).
 
-### For AMD GPU users on Linux
+#### For AMD GPU users on Linux
 
 ```bash
-git clone https://github.com/n8n-io/self-hosted-ai-starter-kit.git
-cd self-hosted-ai-starter-kit
-cp .env.example .env # you should update secrets and passwords inside
-docker compose --profile gpu-amd up
+make secrets
+make up-amd
 ```
 
 #### For Mac / Apple Silicon users
 
 If you’re using a Mac with an M1 or newer processor, you can't expose your GPU
-to the Docker instance, unfortunately. There are two options in this case:
+to the Docker instance. There are two options:
 
-1. Run the starter kit fully on CPU, like in the section "For everyone else"
-   below
-2. Run Ollama on your Mac for faster inference, and connect to that from the
-   n8n instance
+1. Run the starter kit fully on CPU (`make up-cpu`)
+2. Run Ollama on your Mac for faster inference, and connect to that from n8n
 
-If you want to run Ollama on your mac, check the
-[Ollama homepage](https://ollama.com/)
-for installation instructions, and run the starter kit as follows:
+If you want to run Ollama on your Mac, install it from the
+[Ollama homepage](https://ollama.com/), then:
 
 ```bash
-git clone https://github.com/n8n-io/self-hosted-ai-starter-kit.git
-cd self-hosted-ai-starter-kit
-cp .env.example .env # you should update secrets and passwords inside
-docker compose up
+make secrets
+# In n8n/.env, set:
+#   OLLAMA_HOST=host.docker.internal:11434
+make up-mac
 ```
 
-##### For Mac users running OLLAMA locally
+After you see "Editor is now accessible via: <http://localhost:5678/>":
 
-If you're running OLLAMA locally on your Mac (not in Docker), you need to modify the OLLAMA_HOST environment variable
+1. Open <http://localhost:5678/home/credentials>
+2. Open **Local Ollama service**
+3. Set the base URL to `http://host.docker.internal:11434/`
 
-1. Set OLLAMA_HOST to `host.docker.internal:11434` in your .env file. 
-2. Additionally, after you see "Editor is now accessible via: <http://localhost:5678/>":
-
-    1. Head to <http://localhost:5678/home/credentials>
-    2. Click on "Local Ollama service"
-    3. Change the base URL to "http://host.docker.internal:11434/"
-
-#### For everyone else
+#### For everyone else (CPU)
 
 ```bash
-git clone https://github.com/n8n-io/self-hosted-ai-starter-kit.git
-cd self-hosted-ai-starter-kit
-cp .env.example .env # you should update secrets and passwords inside
-docker compose --profile cpu up
+make secrets
+make up-cpu
 ```
 
 ## ⚡️ Quick start and usage
 
-The core of the Self-hosted AI Starter Kit is a Docker Compose file, pre-configured with network and storage settings, minimizing the need for additional installations.
-After completing the installation steps above, simply follow the steps below to get started.
-
-1. Open <http://localhost:5678/> in your browser to set up n8n. You’ll only
-   have to do this once.
+1. Open <http://localhost:5678/> in your browser to set up n8n (once).
 2. Open the included workflow:
    <http://localhost:5678/workflow/srOnR8PAY3u4RSwb>
-3. Click the **Chat** button at the bottom of the canvas, to start running the workflow.
-4. If this is the first time you’re running the workflow, you may need to wait
-   until Ollama finishes downloading Llama3.2. You can inspect the docker
-   console logs to check on the progress.
+3. Click the **Chat** button at the bottom of the canvas.
+4. On first run you may need to wait until Ollama finishes downloading
+   Llama 3.2 — check the `ollama-pull-llama` container logs.
 
-To open n8n at any time, visit <http://localhost:5678/> in your browser.
-
-With your n8n instance, you’ll have access to over 400 integrations and a
-suite of basic and advanced AI nodes such as
+With your n8n instance you’ll have access to over 400 integrations and AI
+nodes such as
 [AI Agent](https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.agent/),
 [Text classifier](https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.text-classifier/),
-and [Information Extractor](https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.information-extractor/)
-nodes. To keep everything local, just remember to use the Ollama node for your
-language model and Qdrant as your vector store.
+and [Information Extractor](https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.information-extractor/).
+To keep everything local, use the Ollama node for your language model and
+Qdrant as your vector store.
 
 > [!NOTE]
-> This starter kit is designed to help you get started with self-hosted AI
-> workflows. While it’s not fully optimized for production environments, it
-> combines robust components that work well together for proof-of-concept
-> projects. You can customize it to meet your specific needs
+> This starter kit is for learning and proof-of-concept. It is not hardened
+> for production (no reverse proxy/TLS, privileged sandbox DinD, placeholder
+> defaults until you run `gen-secrets.sh`). Customize as needed.
+
+### Demo credentials and encryption key
+
+Bundled credentials under `n8n/shared/credentials/` are encrypted with:
+
+```text
+N8N_ENCRYPTION_KEY=super-secret-key
+```
+
+`scripts/gen-secrets.sh` keeps that key (and `QDRANT_API_KEY=qdrant`) so the
+demo workflow works. To rotate everything, including the encryption key:
+
+```bash
+./scripts/gen-secrets.sh --rotate-encryption-key
+```
+
+Then recreate the Ollama and Qdrant credentials in the n8n UI.
+
+### Optional: expose Ollama or Qdrant on the host
+
+By default those APIs stay on the Compose network only (n8n reaches them by
+service name). To publish ports for local debugging, uncomment the `ports:`
+blocks on the `ollama` / `qdrant` services in `n8n/compose.yml`.
+
+### Optional: instance AI assistant model
+
+Uncomment the `N8N_INSTANCE_AI_MODEL*` lines in `n8n/.env` after Ollama is
+running if you want the built-in assistant wired to Llama 3.2 automatically.
 
 ## Upgrading
 
-* ### For Nvidia GPU setups:
+From the repo root (updates `N8N_VERSION` / `N8N_SANDBOX_VERSION` via get-n8n):
 
 ```bash
-docker compose --profile gpu-nvidia pull
-docker compose create && docker compose --profile gpu-nvidia up
+make bump
+make pull PROFILE=cpu   # or gpu / amd
+make up-cpu             # or up-gpu / up-amd / up-mac
 ```
 
-* ### For Mac / Apple Silicon users
+Or manually:
 
 ```bash
-docker compose pull
-docker compose create && docker compose up
-```
-
-* ### For Non-GPU setups:
-
-```bash
+cd n8n
 docker compose --profile cpu pull
-docker compose create && docker compose --profile cpu up
+docker compose --profile cpu up
 ```
 
 ## 👓 Recommended reading
-
-n8n is full of useful content for getting started quickly with its AI concepts
-and nodes. If you run into an issue, go to [support](#support).
 
 - [AI agents for developers: from theory to practice with n8n](https://blog.n8n.io/ai-agents/)
 - [Tutorial: Build an AI workflow in n8n](https://docs.n8n.io/advanced-ai/intro-tutorial/)
@@ -198,18 +212,21 @@ your local n8n instance.
 
 - [Tax Code Assistant](https://n8n.io/workflows/2341-build-a-tax-code-assistant-with-qdrant-mistralai-and-openai/)
 - [Breakdown Documents into Study Notes with MistralAI and Qdrant](https://n8n.io/workflows/2339-breakdown-documents-into-study-notes-using-templating-mistralai-and-qdrant/)
-- [Financial Documents Assistant using Qdrant and](https://n8n.io/workflows/2335-build-a-financial-documents-assistant-using-qdrant-and-mistralai/) [Mistral.ai](http://mistral.ai/)
+- [Financial Documents Assistant using Qdrant and Mistral.ai](https://n8n.io/workflows/2335-build-a-financial-documents-assistant-using-qdrant-and-mistralai/)
 - [Recipe Recommendations with Qdrant and Mistral](https://n8n.io/workflows/2333-recipe-recommendations-with-qdrant-and-mistral/)
 
 ## Tips & tricks
 
 ### Accessing local files
 
-The self-hosted AI starter kit will create a shared folder (by default,
-located in the same directory) which is mounted to the n8n container and
-allows n8n to access files on disk. This folder within the n8n container is
-located at `/data/shared` -- this is the path you’ll need to use in nodes that
-interact with the local filesystem.
+`n8n/shared/` is mounted into the n8n container at `/data/shared`. It holds:
+
+- **Demo import data** — `credentials/` and `workflows/` (imported once on
+  first boot if no workflows exist yet)
+- **Your files** — place documents here for Read/Write Files, Local File
+  Trigger, and Execute Command nodes
+
+Use container path `/data/shared/...` in those nodes.
 
 **Nodes that interact with the local filesystem**
 
@@ -217,19 +234,12 @@ interact with the local filesystem.
 - [Local File Trigger](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.localfiletrigger/)
 - [Execute Command](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.executecommand/)
 
-## 📜 License
+## 📜 License
 
 This project is licensed under the Apache License 2.0 - see the
 [LICENSE](LICENSE) file for details.
 
-## 💬 Support
+## 💬 Support
 
 Join the conversation in the [n8n Forum](https://community.n8n.io/), where you
-can:
-
-- **Share Your Work**: Show off what you’ve built with n8n and inspire others
-  in the community.
-- **Ask Questions**: Whether you’re just getting started or you’re a seasoned
-  pro, the community and our team are ready to support with any challenges.
-- **Propose Ideas**: Have an idea for a feature or improvement? Let us know!
-  We’re always eager to hear what you’d like to see next.
+can share work, ask questions, and propose ideas.

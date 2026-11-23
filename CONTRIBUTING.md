@@ -53,9 +53,10 @@ dependencies should be minimal and optional.
 ### Essential Configuration
 
 This includes:
-- Pre-configured environment variables with sensible defaults
-- Basic Docker Compose profiles for different hardware (CPU, GPU-Nvidia, GPU-AMD)
-- Minimal volume mounts for data persistence
+- Pre-configured environment variables with sensible defaults under `n8n/.env.example`
+- Basic Docker Compose profiles for different hardware (CPU, GPU-Nvidia, GPU-AMD) in `n8n/compose.yml`
+- `scripts/gen-secrets.sh` for unique local secrets (keeps the demo encryption key by default)
+- Minimal volume mounts for data persistence (`n8n/shared/`)
 - Sample workflow demonstrating the core capabilities
 
 ### Getting Started Materials
